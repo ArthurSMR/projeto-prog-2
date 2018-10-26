@@ -17,7 +17,7 @@ typedef struct Disciplina{
 
 
 Aluno *newAluno(char *nome, long int ra, char *login, char *senha){
-    Aluno aux = (Aluno)malloc(sizeof(Aluno));
+    Aluno *aux = (Aluno*)malloc(sizeof(Aluno));
     strcpy(aux->nome, nome);
     aux->ra = ra;
     strcpy(aux->login, login);
