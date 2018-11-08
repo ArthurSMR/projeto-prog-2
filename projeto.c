@@ -12,12 +12,9 @@ typedef struct Aluno{
 typedef struct Disciplina{
     Aluno *v[200];
     int top; // numero de alunos
+    int codigo, qtdCreditos;
+    char nome[100];    
 }Disciplina;
-
-typedef struct Disiplinas{
-    Disciplina *d[200];
-    int top;
-}Disciplinas;
 
 int validaLogin(char usuario[30], char senha[30], Disciplina *d){    
     
@@ -93,15 +90,31 @@ void salvaAluno(Disciplina * d){
     fclose(f);
 }
 
-void imprimeAlunos(Disciplina * d){
+int consultaDisciplinas(char codigoDigitado[10]){
+    char  codigo[10], nome[100];
+    int qtdCreditos, top, res = 0;
     
-    for(int i = 0; i < d->top; i++){
-        printf("%d,",d->v[i]->ra);
-        printf("%s,",d->v[i]->nome);
-        printf("%s,",d->v[i]->login);
-        printf("%s\n",d->v[i]->senha);
+    FILE * f;
+    f = fopen("./Cadastros/Disciplinas.txt","r");
+    
+    fscanf(f, "%d", &top);    
+    for(int i = 0; i < top; i++){        
+        fscanf(f, "%[^,]", codigo);
+        fseek(f, +1, SEEK_CUR);        
+        fscanf(f, "%[^,]", nome);
+        fseek(f, +1, SEEK_CUR);                    
+        fscanf(f, "%d\n", &qtdCreditos);         
+        if(strcmp(codigo, codigoDigitado) == 0){
+            printf("Nome: %s\n", nome);
+            printf("Quantidade de Creditos: %d\n", qtdCreditos);
+            fclose(f);
+            res = 1;
+            break;
+            return res;
+        }
     }
-
+    fclose(f);
+    return res;
 }
 
 Disciplina * carregaD()
@@ -130,7 +143,7 @@ Disciplina * carregaD()
 
 int main(){        
     int loginRes = 0, opcao=-1;
-    char usuario[30], senha[30];
+    char usuario[30], senha[30], codigoDigitado[10];
     Disciplina *d = (Disciplina *)malloc(sizeof(Disciplina));
 
     while(loginRes != 1){        
@@ -152,7 +165,7 @@ int main(){
     printf("%d\n",d->top);
     while(opcao != 0){
         printf("1->Cadastro aluno\n");
-        printf("2->Imprime alunos\n");
+        printf("2->Consulta disciplinas\n");
         printf("0->Sair\n");
         printf("Digite a opcao:");
         scanf("%d",&opcao);
@@ -165,7 +178,13 @@ int main(){
                 printf("Cadastro realizado com sucesso!\n");
                 break;
             case 2:
-                imprimeAlunos(d);
+                printf("Digite o codigo da disciplina: ");
+                scanf("%s", codigoDigitado);
+                int res = consultaDisciplinas(codigoDigitado);
+                if(res == 0){
+                    printf("Disciplina não encontrada!");
+                }
+                break;
         }
     }
     
