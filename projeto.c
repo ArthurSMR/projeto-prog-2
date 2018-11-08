@@ -20,7 +20,7 @@ int validaLogin(char usuario[30], char senha[30], Disciplina *d){
     char usuarioRes[30], senhaRes[30], nome[30];
     FILE* fp;
     
-    if ((fp = fopen("Alunos.txt", "r")) == NULL){
+    if ((fp = fopen("./Cadastros/Alunos.txt", "r")) == NULL){
         printf("Nenhum aluno previamente cadastrado\n");        
     }    
 
@@ -76,7 +76,8 @@ Aluno * le(){
 
 void salvaAluno(Disciplina * d){
     FILE * f;
-    f = fopen("Alunos.txt","w");
+    f = fopen("./Cadastros/Alunos.txt","w");   
+
     fprintf(f,"%d\n",d->top);
     for(int aluno=0;aluno<d->top;aluno++){
         fprintf(f,"%d,",d->v[aluno]->ra);
@@ -87,6 +88,17 @@ void salvaAluno(Disciplina * d){
     fclose(f);
 }
 
+void imprimeAlunos(Disciplina * d){
+    
+    for(int i = 0; i < d->top; i++){
+        printf("%d,",d->v[i]->ra);
+        printf("%s,",d->v[i]->nome);
+        printf("%s,",d->v[i]->login);
+        printf("%s\n",d->v[i]->senha);
+    }
+
+}
+
 Disciplina * carregaD()
 {
 //le o que tem no .txt
@@ -94,7 +106,7 @@ Disciplina * carregaD()
     Disciplina * d;
     int cont=0;
     d = (Disciplina*)malloc(sizeof(Disciplina));
-    f = fopen("Alunos.txt","r"); //ler o que tem no dados.txt
+    f = fopen("./Cadastros/Alunos.txt","r"); //ler o que tem no dados.txt
     fscanf(f, "%d", &d->top);
     while(cont < d->top){
         d->v[cont] = newAluno("a", 0, "a", "a");
@@ -119,9 +131,9 @@ int main(){
     while(loginRes != 1){        
         puts("Menu Inicial");
         puts("Usuario: ");
-        scanf("%s", usuario);
+        scanf("%s", &usuario);
         puts("Senha: ");
-        scanf("%s", senha);
+        scanf("%s", &senha);
 
         loginRes = validaLogin(usuario, senha, d);
         if(loginRes == 0){
@@ -132,9 +144,11 @@ int main(){
     }
 
     d = carregaD();
-
+    printf("%d\n",d->top);
     while(opcao != 0){
         printf("1->Cadastro aluno\n");
+        printf("2->Imprime alunos\n");
+        printf("0->Sair\n");
         printf("Digite a opcao:");
         scanf("%d",&opcao);
         getchar();
@@ -145,6 +159,8 @@ int main(){
                 salvaAluno(d);
                 printf("Cadastro realizado com sucesso!\n");
                 break;
+            case 2:
+                imprimeAlunos(d);
         }
     }
     
