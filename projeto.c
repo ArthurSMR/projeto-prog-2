@@ -14,6 +14,11 @@ typedef struct Disciplina{
     int top; // numero de alunos
 }Disciplina;
 
+typedef struct Disiplinas{
+    Disciplina *d[200];
+    int top;
+}Disciplinas;
+
 int validaLogin(char usuario[30], char senha[30], Disciplina *d){    
     
     int loginRes = 0, cont = 0, ra, top;
