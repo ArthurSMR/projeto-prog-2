@@ -90,31 +90,52 @@ void salvaAluno(Disciplina * d){
     fclose(f);
 }
 
+void consultaPreRequisito(char codigoDigitado[10]){
+    char codigoDisciplina[10], codigoPreRequisito[10];
+    int top;
+
+    strcat(codigoDigitado, "A");    
+    FILE * f;
+    f = fopen("./cadastros/PreRequisitos.txt","r");
+
+    fscanf(f, "%d", &top);    
+    for(int i = 0; i < top; i++){
+        fscanf(f, "%[^,]", codigoDisciplina);
+        fseek(f, +1, SEEK_CUR);    
+        fscanf(f, "%[^\n]", codigoPreRequisito);
+        if(strcmp(codigoDigitado, codigoDisciplina) == 0){
+            printf("%s",codigoPreRequisito);
+            fclose(f);
+            break;
+        }
+    }
+    fclose(f);
+}
+
 int consultaDisciplinas(char codigoDigitado[10]){
     char  codigo[10], nome[100];
-    int qtdCreditos, top, res = 0;
+    int qtdCreditos, top;
     
     FILE * f;
-    f = fopen("./Cadastros/Disciplinas.txt","r");
+    f = fopen("./cadastros/Disciplinas.txt","r");
     
     fscanf(f, "%d", &top);    
     for(int i = 0; i < top; i++){        
         fscanf(f, "%[^,]", codigo);
-        fseek(f, +1, SEEK_CUR);        
+        fseek(f, +1, SEEK_CUR);
         fscanf(f, "%[^,]", nome);
         fseek(f, +1, SEEK_CUR);                    
         fscanf(f, "%d\n", &qtdCreditos);         
         if(strcmp(codigo, codigoDigitado) == 0){
             printf("Nome: %s\n", nome);
             printf("Quantidade de Creditos: %d\n", qtdCreditos);
-            fclose(f);
-            res = 1;
-            break;
-            return res;
+            consultaPreRequisito(codigoDigitado);
+            fclose(f);            
+            return 0;
         }
     }
     fclose(f);
-    return res;
+    return 1;
 }
 
 Disciplina * carregaD()
@@ -124,7 +145,7 @@ Disciplina * carregaD()
     Disciplina * d;
     int cont=0;
     d = (Disciplina*)malloc(sizeof(Disciplina));
-    f = fopen("./Cadastros/Alunos.txt","r"); //ler o que tem no dados.txt
+    f = fopen("./cadastros/Alunos.txt","r"); //ler o que tem no dados.txt
     fscanf(f, "%d", &d->top);
     while(cont < d->top){
         d->v[cont] = newAluno("a", 0, "a", "a");
@@ -142,7 +163,7 @@ Disciplina * carregaD()
 }
 
 int main(){        
-    int loginRes = 0, opcao=-1;
+    int loginRes = 0, opcao=-1, res;
     char usuario[30], senha[30], codigoDigitado[10];
     Disciplina *d = (Disciplina *)malloc(sizeof(Disciplina));
 
@@ -152,7 +173,6 @@ int main(){
         scanf("%s", &usuario);
         puts("Senha: ");
         scanf("%s", &senha);
-
         loginRes = validaLogin(usuario, senha, d);
         if(loginRes == 0){
             printf("Usuario ou senha incorreta\n\n");            
@@ -162,7 +182,6 @@ int main(){
     }
 
     d = carregaD();
-    printf("%d\n",d->top);
     while(opcao != 0){
         printf("1->Cadastro aluno\n");
         printf("2->Consulta disciplinas\n");
@@ -180,9 +199,9 @@ int main(){
             case 2:
                 printf("Digite o codigo da disciplina: ");
                 scanf("%s", codigoDigitado);
-                int res = consultaDisciplinas(codigoDigitado);
-                if(res == 0){
-                    printf("Disciplina não encontrada!");
+                res = consultaDisciplinas(codigoDigitado);
+                if(res == 1){
+                    printf("Disciplina não encontrada!\n");
                 }
                 break;
         }

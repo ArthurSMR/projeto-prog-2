@@ -1,4 +1,4 @@
-31
+32
 EB101,Calculo I,6
 SI010,Estrutura de dados II,4
 SI102,Seminarios I,2
