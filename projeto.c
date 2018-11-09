@@ -93,16 +93,19 @@ void salvaAluno(Disciplina * d){
 void consultaPreRequisito(char codigoDigitado[10]){
     char codigoDisciplina[10], codigoPreRequisito[10];
     int top;
-
+    //adiciona A na frente do codigo digitado para sinalizar que tem que achar na coluna A
     strcat(codigoDigitado, "A");    
+    //Abre arquivo
     FILE * f;
     f = fopen("./cadastros/PreRequisitos.txt","r");
 
     fscanf(f, "%d", &top);    
     for(int i = 0; i < top; i++){
+        //Salva no codigoDisciplina a linha atual até a virgula, mas nao ta passando da primeira virgula
         fscanf(f, "%[^,]", codigoDisciplina);
         fseek(f, +1, SEEK_CUR);    
         fscanf(f, "%[^\n]", codigoPreRequisito);
+        //compara digitado com o da tabela, se encontrar printa o codigo depois da linha
         if(strcmp(codigoDigitado, codigoDisciplina) == 0){
             printf("%s",codigoPreRequisito);
             fclose(f);
@@ -129,6 +132,7 @@ int consultaDisciplinas(char codigoDigitado[10]){
         if(strcmp(codigo, codigoDigitado) == 0){
             printf("Nome: %s\n", nome);
             printf("Quantidade de Creditos: %d\n", qtdCreditos);
+            //Chama método que imprime pre-requisito
             consultaPreRequisito(codigoDigitado);
             fclose(f);            
             return 0;
