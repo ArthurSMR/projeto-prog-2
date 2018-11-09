@@ -94,20 +94,22 @@ void consultaPreRequisito(char codigoDigitado[10]){
     char codigoDisciplina[10], codigoPreRequisito[10];
     int top;
     //adiciona A na frente do codigo digitado para sinalizar que tem que achar na coluna A
-    strcat(codigoDigitado, "A");    
+    //strcat(codigoDigitado, "A");    
     //Abre arquivo
     FILE * f;
-    f = fopen("./cadastros/PreRequisitos.txt","r");
+    f = fopen("./cadastros/PreRequisitos.1.txt","r");
 
-    fscanf(f, "%d", &top);    
+    fscanf(f, "%d\n", &top);    
+
     for(int i = 0; i < top; i++){
         //Salva no codigoDisciplina a linha atual até a virgula, mas nao ta passando da primeira virgula
         fscanf(f, "%[^,]", codigoDisciplina);
         fseek(f, +1, SEEK_CUR);    
         fscanf(f, "%[^\n]", codigoPreRequisito);
+
         //compara digitado com o da tabela, se encontrar printa o codigo depois da linha
         if(strcmp(codigoDigitado, codigoDisciplina) == 0){
-            printf("%s",codigoPreRequisito);
+            printf("%s\n",codigoPreRequisito);
             fclose(f);
             break;
         }
@@ -115,30 +117,33 @@ void consultaPreRequisito(char codigoDigitado[10]){
     fclose(f);
 }
 
-int consultaDisciplinas(char codigoDigitado[10]){
-    char  codigo[10], nome[100];
-    int qtdCreditos, top;
-    
-    FILE * f;
-    f = fopen("./cadastros/Disciplinas.txt","r");
-    
-    fscanf(f, "%d", &top);    
-    for(int i = 0; i < top; i++){        
-        fscanf(f, "%[^,]", codigo);
-        fseek(f, +1, SEEK_CUR);
-        fscanf(f, "%[^,]", nome);
-        fseek(f, +1, SEEK_CUR);                    
-        fscanf(f, "%d\n", &qtdCreditos);         
+int consultaDisciplina(char codigoDigitado[10]){
+    char nome[100], codigo[10];
+    int qtd, credito, cont=0;
+    FILE *fp;
+    if ((fp = fopen("./cadastros/Disciplinas.txt","r")) == NULL){
+        printf("Nenhuma disciplina encontrada\n");        
+    }
+    fscanf(fp, "%d\n", &qtd);
+
+    while(cont < qtd){
+        fscanf(fp, "%[^,]", codigo);
+        fseek(fp, +1, SEEK_CUR);
+        fscanf(fp, "%[^,]", nome);
+        fseek(fp, +1, SEEK_CUR);
+        fscanf(fp, "%d\n", &credito);
+        
         if(strcmp(codigo, codigoDigitado) == 0){
             printf("Nome: %s\n", nome);
-            printf("Quantidade de Creditos: %d\n", qtdCreditos);
-            //Chama método que imprime pre-requisito
+            printf("Quantidade de creditos: %d\n", credito);
+            //verificar os pre requisitos
             consultaPreRequisito(codigoDigitado);
-            fclose(f);            
+            fclose(fp);
             return 0;
         }
+        cont++;
     }
-    fclose(f);
+    fclose(fp);
     return 1;
 }
 
@@ -167,7 +172,7 @@ Disciplina * carregaD()
 }
 
 int main(){        
-    int loginRes = 0, opcao=-1, res;
+    int loginRes = 0, opcao=-1, res, erro;
     char usuario[30], senha[30], codigoDigitado[10];
     Disciplina *d = (Disciplina *)malloc(sizeof(Disciplina));
 
@@ -201,11 +206,12 @@ int main(){
                 printf("Cadastro realizado com sucesso!\n");
                 break;
             case 2:
-                printf("Digite o codigo da disciplina: ");
+                printf("\n");
+                printf("Codigo da disciplina: ");
                 scanf("%s", codigoDigitado);
-                res = consultaDisciplinas(codigoDigitado);
-                if(res == 1){
-                    printf("Disciplina não encontrada!\n");
+                erro = consultaDisciplina(codigoDigitado);
+                if(erro == 1){
+                    printf("Disciplina nao encontrada!\n");
                 }
                 break;
         }
