@@ -1,6 +1,6 @@
 //Igor Martins Silverio 217972
-//Victor Pereira Cordeiro  206588
-//Arthur Santos  213315
+//Victor Pereira Cordeiro   206588
+//Arthur Santos Machado Rodrigues   213315
 
 
 
@@ -65,14 +65,14 @@ Aluno * le(){
     char login[30];
     char senha[30];
     printf("Digite o seu nome: ");
-    gets(nome);
+    fgets(nome,100,stdin);
     printf("Digite seu RA: ");
     scanf("%d", &ra);
     getchar();
     printf("Digite seu Login: ");
-    gets(login);
+    fgets(login,30,stdin);
     printf("Digite sua senha: ");
-    gets(senha);
+    fgets(senha,30,stdin);
     return newAluno(nome,ra,login,senha);
 }
 
@@ -270,9 +270,7 @@ int imprimeSemestre(char usuario[30],int semestre,Disciplina* d){
         }
         cont++;
     }
-    
     fp=fopen("AlunoDisciplina.txt","r");
-    
     while (!feof(fp)) {
             fscanf(fp, "%d", &ra);
             fseek(fp, +1, SEEK_CUR);
@@ -283,20 +281,19 @@ int imprimeSemestre(char usuario[30],int semestre,Disciplina* d){
             fscanf(fp, "%d", &nota);
             fseek(fp, +1, SEEK_CUR);
             fscanf(fp, "%f\n", &faltas);
-            printf("%d - %d - %d\n",ra,sem, semestre);
-            if(d->v[cont]->ra == ra && semestre == sem){
+            if((d->v[cont]->ra == ra) && (semestre == sem)){
                 pont=fopen("Disciplinas.txt","r");
-                fscanf(fp, "%d", &top);
+                fscanf(pont, "%d\n", &top);
+                var=0;
                 while (var < top) {
                     fscanf(pont, "%[^,]", codigo);
                     fseek(pont, +1, SEEK_CUR);
                     fscanf(pont, "%[^,]", nome);
                     fseek(pont, +1, SEEK_CUR);
                     fscanf(pont, "%d\n", &credito);
-                    //printf("%s - %s\n",codigo,disciplina);
                     if(strcmp(codigo,disciplina)==0){
-                        printf("Disciplinas: \n");
                         printf("%s - %s - Nota: %d, Faltas: %.1f\n",disciplina,nome,nota,faltas);
+                        fclose(pont);
                         break;
                     }
                     var++;
@@ -304,15 +301,11 @@ int imprimeSemestre(char usuario[30],int semestre,Disciplina* d){
                 
             }
     }
+    fclose(fp);
     return 0;
 }
                 
-                    
-                    
-                    
-           
     
-
 int main(){        
     int loginRes = 0, opcao=-1, res, erro, semestre,disciplina;
     char usuario[30], senha[30], codigoDigitado[10];
@@ -379,6 +372,7 @@ int main(){
             case 4:
                 printf("Digite o semestre:\n");
                 scanf("%d",&semestre);
+                printf("Disciplinas: \n");
                 imprimeSemestre(usuario,semestre,d);
                 //printf("Digite o codigo da disciplina que deseja fazer a alteração: ");
                 //scanf("%s",codigoDigitado);   
@@ -389,4 +383,3 @@ int main(){
     
     return 0;
 }
-       
