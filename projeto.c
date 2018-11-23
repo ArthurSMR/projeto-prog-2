@@ -280,6 +280,7 @@ int realizaMatricula(char usuario[30], int semestre, char disciplina[10], Discip
         fscanf(fp, "%[^,]", nome);
         fseek(fp, +1, SEEK_CUR);
         fscanf(fp, "%d\n", &credito);
+        
         if (strcmp(codigo, disciplina) == 0)
         {
             pont = fopen("./cadastros/AlunoDisciplina.txt", "a"); //grava no txt
@@ -299,16 +300,14 @@ int realizaMatricula(char usuario[30], int semestre, char disciplina[10], Discip
 
 //---------------------------------------------------------------
 
-void atualizaNotaFalta()
+void atualizaNotaFalta(char codigoDigitado[10])
 {
     FILE *fp;
     FILE *temp;
-    char codigoDigitado[10], disciplina[10];
-    int nota, sem, ra, novaNota;
-    float faltas, novaFalta;
-    printf("Disciplina que deseja fazer a alteracao: ");
-    scanf("%s", codigoDigitado);
-    printf("\n");
+    char disciplina[10];
+    int sem, ra;
+    float faltas, novaFalta, nota, novaNota;
+    
     fp = fopen("./cadastros/AlunoDisciplina.txt", "r");
     temp = fopen("./cadastros/AlunoDisciplinaTemp.txt", "w");
 
@@ -320,7 +319,7 @@ void atualizaNotaFalta()
         fseek(fp, +1, SEEK_CUR);
         fscanf(fp, "%d", &sem);
         fseek(fp, +1, SEEK_CUR);
-        fscanf(fp, "%d", &nota);
+        fscanf(fp, "%f", &nota);
         fseek(fp, +1, SEEK_CUR);
         fscanf(fp, "%f\n", &faltas);
 
@@ -330,19 +329,19 @@ void atualizaNotaFalta()
             fprintf(temp, "%d,", ra);
             fprintf(temp, "%s,", disciplina);
             fprintf(temp, "%d,", sem);
-            fprintf(temp, "%d,%.1f\n", nota, faltas);
+            fprintf(temp, "%.1f,%.1f\n", nota, faltas);
             
         }
         //atualiza a nota no arquivo temporario
         else{
             printf("Digite a sua nota: ");
-            scanf("%d", &novaNota);
+            scanf("%f", &novaNota);
             printf("Digite sua falta: ");
             scanf("%f", &novaFalta);
             fprintf(temp, "%d,", ra);
             fprintf(temp, "%s,", disciplina);
             fprintf(temp, "%d,", sem);
-            fprintf(temp, "%d,%.1f\n", novaNota, novaFalta);
+            fprintf(temp, "%.1f,%.1f\n", novaNota, novaFalta);
             continue;
         }
     }
@@ -360,9 +359,9 @@ int imprimeSemestre(char usuario[30], int semestre, Disciplina *d)
     FILE *fp;
     FILE *pont;
     int cont = 0, var = 0;
-    int ra, sem, nota, credito, top;
-    char disciplina[10], codigo[10], nome[50];
-    float faltas;
+    int ra, sem, credito, top;
+    char disciplina[10], codigo[10], nome[50], codigoDigitado[10];
+    float faltas, nota;
 
     while (cont < d->top)
     { //valida o usuario
@@ -381,7 +380,7 @@ int imprimeSemestre(char usuario[30], int semestre, Disciplina *d)
         fseek(fp, +1, SEEK_CUR);
         fscanf(fp, "%d", &sem);
         fseek(fp, +1, SEEK_CUR);
-        fscanf(fp, "%d", &nota);
+        fscanf(fp, "%f", &nota);
         fseek(fp, +1, SEEK_CUR);
         fscanf(fp, "%f\n", &faltas);
         if ((d->v[cont]->ra == ra) && (semestre == sem))
@@ -398,7 +397,7 @@ int imprimeSemestre(char usuario[30], int semestre, Disciplina *d)
                 fscanf(pont, "%d\n", &credito);
                 if (strcmp(codigo, disciplina) == 0)
                 {
-                    printf("%s - %s - Nota: %d, Faltas: %.1f\n\n", disciplina, nome, nota, faltas);
+                    printf("%s - %s - Nota: %.1f, Faltas: %.1f\n\n", disciplina, nome, nota, faltas);
                     fclose(pont);
                     break;
                 }
@@ -407,7 +406,105 @@ int imprimeSemestre(char usuario[30], int semestre, Disciplina *d)
         }
     }
     fclose(fp);
-    atualizaNotaFalta();
+    printf("Para sair, digite XX000\n");
+    printf("Disciplina que deseja fazer a alteracao: ");
+    scanf("%s", codigoDigitado);
+    if(strcmp(codigoDigitado, "XX000")== 0){
+        return 1;
+    }
+    printf("\n");
+    atualizaNotaFalta(codigoDigitado);
+    return 0;
+}
+
+int consultaCredito(char codigoDisciplina[10])
+{
+    char nome[100], codigo[10];
+    int top, credito, cont = 0;
+    FILE *fp;
+    fp = fopen("./cadastros/Disciplinas.txt", "r");
+
+    fscanf(fp, "%d\n", &top);
+    while (cont < top)
+    {
+        fscanf(fp, "%[^,]", codigo);
+        fseek(fp, +1, SEEK_CUR);
+        fscanf(fp, "%[^,]", nome);
+        fseek(fp, +1, SEEK_CUR);
+        fscanf(fp, "%d\n", &credito);
+        if (strcmp(codigo, codigoDisciplina) == 0)
+        { //fazendo comparacao entre o codigo da disciplina e o codigoDisciplina
+            return credito;
+            fclose(fp);
+            return 0;
+        }
+        cont++;
+    }
+    fclose(fp);
+    return 1;
+}
+
+//---------------------------------------------------------------
+int calcularCR(Disciplina *d, int cont, float *cr){
+    FILE  *f;
+    char disciplina[10];
+    int credito=0, ra, sem;
+    float faltas, somaNota=0, nota, multi=0;
+    f = fopen("./cadastros/AlunoDisciplina.txt", "r");
+
+    while (!feof(f))
+    { //aramzena as notas
+        fscanf(f, "%d", &ra);
+        fseek(f, +1, SEEK_CUR);
+        fscanf(f, "%[^,]", disciplina);
+        fseek(f, +1, SEEK_CUR);
+        fscanf(f, "%d", &sem);
+        fseek(f, +1, SEEK_CUR);
+        fscanf(f, "%f", &nota);
+        fseek(f, +1, SEEK_CUR);
+        fscanf(f, "%f\n", &faltas);
+        if(d->v[cont]->ra == ra){
+            credito += consultaCredito(disciplina);
+            //printf("Credito: %d\n", credito);
+            multi += (consultaCredito(disciplina)*nota);
+            
+        }
+    }
+    credito = credito*10;
+    printf("mul: %.1f\n", multi);
+    printf("cre: %d\n", credito);
+    *cr = (multi/credito);
+    printf("cr1: %.3f\n", *cr);
+    return *cr;
+} 
+//---------------------------------------------------------------
+
+int gerarRAdoAluno(char usuario[30], Disciplina *d){
+    FILE *f;
+    FILE *fp;
+    int ra, cont=0;
+    char login[30], nome[100], senha[30];
+    float coef;
+    f = fopen("./cadastros/Alunos.txt", "r");
+    while (cont < d->top)
+    { //valida o usuario
+
+        if (strcmp(d->v[cont]->login, usuario) == 0)
+        {
+            fp = fopen("./cadastros/RAdoAluno.txt", "w");
+            fprintf(fp,"Faculdade de Tecnologia – UNICAMP\n\n");
+            fprintf(fp,"Relatório de Matrícula\n\n");
+            fprintf(fp,"Nome completo: %s\n", d->v[cont]->nome);
+            fprintf(fp,"RA: %d\n", d->v[cont]->ra);
+            coef = calcularCR(d,cont, &coef);
+            printf("cr2: %.3f\n", coef);
+            fprintf(fp, "Coeficiente de Rendimento: %.3f", coef);
+            break;
+        }
+        cont++;
+    }
+    fclose(f);
+    fclose(fp);
     return 0;
 }
 
@@ -444,8 +541,9 @@ int main()
         printf("2->Consulta disciplinas\n");
         printf("3->Realizar matricula\n");
         printf("4->Atualiza nota e falta\n");
+        printf("5->Geracao relatorio em txt\n");
         printf("0->Sair\n");
-        printf("Digite a opcao:");
+        printf("Digite a opcao: ");
         scanf("%d", &opcao);
         getchar();
         switch (opcao)
@@ -493,8 +591,18 @@ int main()
             printf("Digite o semestre: ");
             scanf("%d", &semestre);
             printf("\nDisciplinas: \n");
-            imprimeSemestre(usuario, semestre, d);
+            erro = imprimeSemestre(usuario, semestre, d);
+            if(erro == 1){
+                printf("Voltando ao menu anterior: \n\n");
+                break;
+            }
+            else{
             printf("Alteracoes realizadas!\n");
+            break;
+            }
+        case 5:
+            gerarRAdoAluno(usuario, d);
+            printf("Gerado com sucesso!\n\n");
             break;
         }
     }
