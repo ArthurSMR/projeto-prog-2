@@ -1,3 +1,8 @@
+//Igor Martins Silverio 217972
+//Victor Pereira Cordeiro  206588
+//Arthur Santos  213315
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,6 +91,25 @@ void salvaAluno(Disciplina * d){
     fclose(f);
 }
 
+
+
+void ordenaRA(Disciplina *d){
+    FILE *f;
+    Aluno * aux;
+    
+    for(int i=0;i<d->top;i++){
+        for(int k=0;k<d->top-1;k++){
+           if(d->v[k]->ra > d->v[k+1]->ra){
+               aux = d->v[k];
+               d->v[k] = d->v[k+1];
+               d->v[k+1] = aux;
+              
+           } 
+        }
+    }
+    salvaAluno(d);
+}
+
 int leDisciplinas(char codigoPreRequisitos[10]){
     char nome[100], codigo[10];
     int top, credito, cont=0;
@@ -113,19 +137,20 @@ void consultaPreRequisitos(char codigoDigitado[10]){
     char codigo[10], codigoPreRequisito[10];
     int top, cont=0;
     FILE *fp;
-    
+   
     if ((fp = fopen("PreRequisitos.txt", "r")) == NULL)
-        printf("Nenhuma disciplina encontrada\n");        
+        printf("Nenhum pre-requisito encontrado\n");        
     
-    fscanf(fp, "%d\n", &top);
+    fscanf(fp, "%d", &top);
     while(cont < top){
         fscanf(fp, "%[^,]", codigo);
         fseek(fp, +1, SEEK_CUR);
         fscanf(fp, "%[^\n]", codigoPreRequisito);
-        //nesta comparacao está dando erro
-        //compara o codigo da disciplina e o codigoDigitado
-        if(strcmp(codigo, codigoDigitado) == 0){
-            //chama leDisciplinas para saber o nome dos Pre-Requisitos
+        //int a=strlen(codigo);
+        //int b=strlen(codigoDigitado);
+        //printf("%d %d\n",a,b);
+        //printf("%s-%s\n",codigo,codigoDigitado);
+        if(strcmp(codigo,codigoDigitado) == 0){
             printf("Pré-requisitos: %s\n",codigoPreRequisito);
         }
         cont++;
@@ -188,59 +213,105 @@ Disciplina * carregaD()
 
 int realizaMatricula(char usuario[30],int semestre,char disciplina[10],Disciplina* d){
     FILE* fp;
-    int cont=0;
-    int aux;
-   
-    while(cont < d->top){   //valida o usuario
-        if(strcmp(d->v[cont]->login,usuario)==0){
-            aux=d->v[cont]->ra;
-            break;
+    FILE* pont;
+    int cont=0,var=0;
+    int aux,top,credito;
+    char codigo[10],nome[50];
+    
+    if ((fp = fopen("Disciplinas.txt", "r")) == NULL)
+        printf("Nenhuma disciplina encontrada\n");     
+            
+    while (cont < d->top) { //valida o usuario
+                if (strcmp(d->v[cont]->login, usuario) == 0) {
+                    aux = d->v[cont]->ra;
+                    break;
+                }
+                cont++;
+            }
+    
+    fscanf(fp, "%d", &top);
+    while (var < top) {
+        fscanf(fp, "%[^,]", codigo);
+        fseek(fp, +1, SEEK_CUR);
+        fscanf(fp, "%[^,]", nome);
+        fseek(fp, +1, SEEK_CUR);
+        fscanf(fp, "%d\n", &credito);
+        if (strcmp(codigo, disciplina) == 0) {
+            pont = fopen("AlunoDisciplina.txt", "a"); //grava no txt
+            fprintf(pont, "%d,", aux);
+            fprintf(pont, "%s,", disciplina);
+            fprintf(pont, "%d,", semestre);
+            fprintf(pont, "0,0\n");
+            fclose(pont);
+            fclose(fp);
+            return 0;
         }
-        cont++;
+        else
+            var++;
     }
-    
-    
-    fp=fopen("AlunoDisciplina.txt","a");    //grava no txt
-    fprintf(fp,"%d,",aux);
-    fprintf(fp,"%s,",disciplina);
-    fprintf(fp,"%d,",semestre);
-    fprintf(fp,"0,0\n");
-    fclose(fp);
-    return 0;
+    return 1;
 }
+        
+        
+        
+    
 
-/*int imprimeSemestre(char usuario[30],int semestre,Disciplina* d){
+int imprimeSemestre(char usuario[30],int semestre,Disciplina* d){
     FILE* fp;
-    FILE* arq;
-    int cont=0;
-    char aux1[15],aux2[50];
-   
-    while(cont < d->top){   //valida o usuario
-        if(strcmp(d->v[cont]->login,usuario)==0){
+    FILE* pont;
+    int cont=0,var=0;
+    int ra,sem,nota,credito,top;
+    char disciplina[10],codigo[10],nome[50];
+    float faltas;
+    
+    while (cont < d->top) { //valida o usuario
+        if (strcmp(d->v[cont]->login, usuario) == 0) {
             break;
         }
         cont++;
     }
     
     fp=fopen("AlunoDisciplina.txt","r");
-    arq=fopen("Disciplinas.txt","r");
-    while(strcmp(d->v[cont]->ra,aux1)!=0){
-        fscanf(fp, "%[^,]", aux1);
-        fseek(fp, +1, SEEK_CUR);
-    }
-    fscanf(fp, "%[^,]", aux1);
-    fseek(fp, +1, SEEK_CUR);
-    while(strcmp(aux1,aux2)!=0){
-        fscanf(fp, "%[^,]", aux2);
-        fseek(fp, +1, SEEK_CUR);
-    }
-    fscanf(fp, "%[^,]", aux2);
-    fseek(fp, +1, SEEK_CUR);
-    printf("%s - %s\n",aux1,aux2);
     
+    while (!feof(fp)) {
+            fscanf(fp, "%d", &ra);
+            fseek(fp, +1, SEEK_CUR);
+            fscanf(fp, "%[^,]", disciplina);
+            fseek(fp, +1, SEEK_CUR);
+            fscanf(fp, "%d", &sem);
+            fseek(fp, +1, SEEK_CUR);
+            fscanf(fp, "%d", &nota);
+            fseek(fp, +1, SEEK_CUR);
+            fscanf(fp, "%f\n", &faltas);
+            printf("%d - %d - %d\n",ra,sem, semestre);
+            if(d->v[cont]->ra == ra && semestre == sem){
+                pont=fopen("Disciplinas.txt","r");
+                fscanf(fp, "%d", &top);
+                while (var < top) {
+                    fscanf(pont, "%[^,]", codigo);
+                    fseek(pont, +1, SEEK_CUR);
+                    fscanf(pont, "%[^,]", nome);
+                    fseek(pont, +1, SEEK_CUR);
+                    fscanf(pont, "%d\n", &credito);
+                    //printf("%s - %s\n",codigo,disciplina);
+                    if(strcmp(codigo,disciplina)==0){
+                        printf("Disciplinas: \n");
+                        printf("%s - %s - Nota: %d, Faltas: %.1f\n",disciplina,nome,nota,faltas);
+                        break;
+                    }
+                    var++;
+                }
+                
+            }
+    }
     return 0;
 }
-   */ 
+                
+                    
+                    
+                    
+           
+    
 
 int main(){        
     int loginRes = 0, opcao=-1, res, erro, semestre,disciplina;
@@ -275,13 +346,14 @@ int main(){
             case 0: break;
             case 1:
                 d->v[d->top++]=le();
-                salvaAluno(d);
+                ordenaRA(d);
                 printf("Cadastro realizado com sucesso!\n");
                 break;
             case 2:
                 printf("\n");
                 printf("Codigo da disciplina: ");
                 scanf("%s", codigoDigitado);
+                getchar();
                 erro = consultaDisciplina(codigoDigitado);
                 if(erro == 1){
                     printf("Disciplina nao encontrada!\n");
@@ -304,16 +376,17 @@ int main(){
                     }
                 }
                 break;
-            /*case 4:
+            case 4:
                 printf("Digite o semestre:\n");
                 scanf("%d",&semestre);
-                printf("Disciplinas:\n");
                 imprimeSemestre(usuario,semestre,d);
-                printf("Digite o codigo da disciplina que deseja fazer a alteração: ");
-                scanf("%s",codigoDigitado);   */
+                //printf("Digite o codigo da disciplina que deseja fazer a alteração: ");
+                //scanf("%s",codigoDigitado);   
+                 break;
                 
         }
     }
     
     return 0;
 }
+       
