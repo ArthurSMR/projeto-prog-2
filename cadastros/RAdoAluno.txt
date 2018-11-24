@@ -1,0 +1,14 @@
+Faculdade de Tecnologia – UNICAMP
+
+Relatório de Matrícula
+
+Nome completo: Arthur
+RA: 213315
+Coeficiente de Rendimento: 0.698
+Classificação do aluno na turma : 2 de 2
+
+Disciplina	Nota	Faltas()	Situacao
+EB101		 7.9 	 100.0 		 Aprovado por nota e frequencia
+EB102		 4.3 	 100.0 		 Reprovado por nota
+TT106		 7.5 	 85.5 		 Aprovado por nota e frequencia
+SI100		 9.1 	 100.0 		 Aprovado por nota e frequencia

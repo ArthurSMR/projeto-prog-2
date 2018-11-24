@@ -2,6 +2,8 @@
 //Victor Pereira Cordeiro   206588
 //Arthur Santos Machado Rodrigues   213315
 
+//*****ESSE SISTEMA FOI TESTADO EM WINDOWS*****
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -417,6 +419,8 @@ int imprimeSemestre(char usuario[30], int semestre, Disciplina *d)
     return 0;
 }
 
+//---------------------------------------------------------------
+
 int consultaCredito(char codigoDisciplina[10])
 {
     char nome[100], codigo[10];
@@ -445,11 +449,11 @@ int consultaCredito(char codigoDisciplina[10])
 }
 
 //---------------------------------------------------------------
-int calcularCR(Disciplina *d, int cont, float *cr){
+float calcularCR(Disciplina *d, int cont){
     FILE  *f;
     char disciplina[10];
     int credito=0, ra, sem;
-    float faltas, somaNota=0, nota, multi=0;
+    float faltas, somaNota=0, nota, multi=0, cr;
     f = fopen("./cadastros/AlunoDisciplina.txt", "r");
 
     while (!feof(f))
@@ -471,20 +475,47 @@ int calcularCR(Disciplina *d, int cont, float *cr){
         }
     }
     credito = credito*10;
-    printf("mul: %.1f\n", multi);
-    printf("cre: %d\n", credito);
-    *cr = (multi/credito);
-    printf("cr1: %.3f\n", *cr);
-    return *cr;
+    cr = (multi/credito); //divisao para calcular o cr
+    //printf("cr1: %.3f\n", cr);
+    return cr;
 } 
+
+//---------------------------------------------------------------
+
+int calculaPosicao(Disciplina *d, float crUsuario){
+    float crAlunos[200], posicao = 1;
+    int aux;
+    for(int i = 0; i < d->top; i++){
+        crAlunos[i] = calcularCR(d, i);
+        printf("%.3f\n", crAlunos[i]);    
+    }
+
+    for(int i=0;i<d->top;i++){
+        for(int k=0;k<(d->top-1); k++){
+            if(crAlunos[k] > crAlunos[k+1]){
+                aux = crAlunos[k];
+                crAlunos[k] = crAlunos[k+1];
+                crAlunos[k+1] = aux;
+            }
+            printf("crAlunos[%d] = %.3f\n", i, crAlunos[i]);
+        }
+    }
+    for(int i=0;i<d->top;i++){
+        if(crUsuario == crAlunos[i]){
+            posicao = d->top-i;
+        }
+    }
+    return posicao;
+}
 //---------------------------------------------------------------
 
 int gerarRAdoAluno(char usuario[30], Disciplina *d){
     FILE *f;
     FILE *fp;
-    int ra, cont=0;
-    char login[30], nome[100], senha[30];
-    float coef;
+    FILE *pont;
+    int ra, cont=0, posicao, contSem=0, sem;
+    char login[30], nome[100], senha[30], disciplina[10];
+    float coef, nota, faltas;
     f = fopen("./cadastros/Alunos.txt", "r");
     while (cont < d->top)
     { //valida o usuario
@@ -496,15 +527,59 @@ int gerarRAdoAluno(char usuario[30], Disciplina *d){
             fprintf(fp,"Relatório de Matrícula\n\n");
             fprintf(fp,"Nome completo: %s\n", d->v[cont]->nome);
             fprintf(fp,"RA: %d\n", d->v[cont]->ra);
-            coef = calcularCR(d,cont, &coef);
-            printf("cr2: %.3f\n", coef);
-            fprintf(fp, "Coeficiente de Rendimento: %.3f", coef);
+            coef = calcularCR(d,cont);
+            fprintf(fp, "Coeficiente de Rendimento: %.3f\n", coef);
+            posicao = calculaPosicao(d, coef); //achando posicao
+            fprintf(fp, "Classificação do aluno na turma : %d de %d", posicao, d->top);
             break;
         }
         cont++;
     }
     fclose(f);
     fclose(fp);
+
+    //organizando e escrevendo as disciplinas
+
+    fp = fopen("./cadastros/RAdoAluno.txt", "a");
+    pont = fopen("./cadastros/AlunoDisciplina.txt", "r");
+    fprintf(fp,"\n\nDisciplina\tNota\tFaltas(%)\tSituacao\n");
+    
+    while (contSem < 15) {
+        while (!feof(pont)) {
+            fscanf(pont, "%d", &ra);
+            fseek(pont, +1, SEEK_CUR);
+            fscanf(pont, "%[^,]", disciplina);
+            fseek(pont, +1, SEEK_CUR);
+            fscanf(pont, "%d", &sem);
+            fseek(pont, +1, SEEK_CUR);
+            fscanf(pont, "%f", &nota);
+            fseek(pont, +1, SEEK_CUR);
+            fscanf(pont, "%f\n", &faltas);
+            if (ra == d->v[cont]->ra && contSem == sem) {
+                fprintf(fp, "%s\t\t %.1f \t %.1f \t\t ", disciplina, nota, faltas);
+                if (nota < 5 && faltas < 25) {
+                    fprintf(fp, "Reprovado por nota e frequencia\n");
+                } else {
+                    if (nota < 5 && faltas >= 25) {
+                        fprintf(fp, "Reprovado por nota\n");
+                    } else {
+                        if (nota >= 5 && faltas < 25) {
+                            fprintf(fp, "Reprovado por frequencia\n");
+                        } else {
+                            if (nota >= 5 && faltas >= 25) {
+                                fprintf(fp, "Aprovado por nota e frequencia\n");
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+        rewind(pont);
+        contSem++;
+    }
+    fclose(fp);
+    fclose(pont);
     return 0;
 }
 
